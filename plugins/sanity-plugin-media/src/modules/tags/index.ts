@@ -3,7 +3,7 @@ import type {ClientError, Transaction} from '@sanity/client'
 import groq from 'groq'
 import type {Selector} from 'react-redux'
 import {ofType} from 'redux-observable'
-import {from, Observable, of} from 'rxjs'
+import {EMPTY, from, Observable, of} from 'rxjs'
 import {bufferTime, catchError, filter, mergeMap, switchMap, withLatestFrom} from 'rxjs/operators'
 
 import {TAG_DOCUMENT_NAME} from '../../constants'
@@ -162,6 +162,9 @@ const tagsSlice = createSlice({
         `
         return {payload: {query}}
       },
+    },
+    listenRequest() {
+      //
     },
     // Queue batch tag creation
     listenerCreateQueue(_state, _action: PayloadAction<{tag: Tag}>) {
@@ -395,6 +398,31 @@ export const tagsFetchEpic: MyEpic = (action$, state$, {client}) =>
         ),
       )
     }),
+  )
+
+/**
+ * Listens for tag mutations for the lifetime of the store, so changes made while the browser
+ * is hidden (the Studio keeps recently used tools mounted) still reach it.
+ */
+export const tagsListenEpic: MyEpic = (action$, _state$, {client}) =>
+  action$.pipe(
+    filter(tagsSlice.actions.listenRequest.match),
+    switchMap(() =>
+      client.listen(groq`*[_type == "${TAG_DOCUMENT_NAME}" && !(_id in path("drafts.**"))]`).pipe(
+        mergeMap(({documentId, result, transition}) => {
+          switch (transition) {
+            case 'appear':
+              return of(tagsSlice.actions.listenerCreateQueue({tag: result as Tag}))
+            case 'disappear':
+              return of(tagsSlice.actions.listenerDeleteQueue({tagId: documentId}))
+            case 'update':
+              return of(tagsSlice.actions.listenerUpdateQueue({tag: result as Tag}))
+            default:
+              return EMPTY
+          }
+        }),
+      ),
+    ),
   )
 
 // TODO: merge all buffer epics

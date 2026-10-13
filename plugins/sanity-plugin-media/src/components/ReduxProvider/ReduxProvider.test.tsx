@@ -1,6 +1,6 @@
 import {type Store} from '@reduxjs/toolkit'
 import {act, cleanup, render} from '@testing-library/react'
-import {StrictMode, useEffect} from 'react'
+import {Activity, StrictMode, useEffect} from 'react'
 import {useStore} from 'react-redux'
 import {of} from 'rxjs'
 import {afterEach, describe, expect, it, vi} from 'vitest'
@@ -61,6 +61,83 @@ describe('ReduxProvider store lifecycle', () => {
     await vi.waitFor(() => {
       expect(store!.getState().assets.fetching).toBe(false)
     })
+  })
+
+  it('keeps the epics running while an Activity boundary hides the browser', async () => {
+    const fetch = vi.fn(() => of({items: []}))
+    const client = createMockSanityClient({
+      observable: {fetch},
+    })
+    let store: Store | undefined
+
+    const tree = (mode: 'visible' | 'hidden') => (
+      <Activity mode={mode}>
+        <ReduxProvider client={client}>
+          <StoreProbe
+            onStore={(next) => {
+              store = next
+            }}
+          />
+        </ReduxProvider>
+      </Activity>
+    )
+    const {rerender} = render(tree('visible'))
+
+    expect(store).toBeDefined()
+    rerender(tree('hidden'))
+    await act(async () => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0)
+      })
+    })
+
+    // Child effects dispatch their fetches again when the tool is shown
+    rerender(tree('visible'))
+    dispatchFetch(store!)
+
+    await vi.waitFor(() => {
+      expect(fetch).toHaveBeenCalled()
+    })
+    await vi.waitFor(() => {
+      expect(store!.getState().assets.fetching).toBe(false)
+    })
+  })
+
+  it('ends the epics when a hidden browser is unmounted', async () => {
+    const fetch = vi.fn(() => of({items: []}))
+    const client = createMockSanityClient({
+      observable: {fetch},
+    })
+    let store: Store | undefined
+
+    const tree = (mode: 'visible' | 'hidden') => (
+      <Activity mode={mode}>
+        <ReduxProvider client={client}>
+          <StoreProbe
+            onStore={(next) => {
+              store = next
+            }}
+          />
+        </ReduxProvider>
+      </Activity>
+    )
+    const {rerender, unmount} = render(tree('visible'))
+    rerender(tree('hidden'))
+
+    // React does not run the hidden tree's effect cleanups again on unmount, so the end comes
+    // from watching the DOM; MutationObserver callbacks are delivered as microtasks
+    unmount()
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    dispatchFetch(store!)
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(fetch).not.toHaveBeenCalled()
+    expect(store!.getState().assets.fetching).toBe(true)
   })
 
   it('ends the epics after a real unmount', async () => {

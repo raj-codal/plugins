@@ -31,8 +31,14 @@ const EditAssetDialog = ({assetId, onClose}: {assetId: string; onClose: () => vo
   const dispatch = useDispatch()
   const openDialogCount = useTypedSelector((state) => state.dialog.items.length)
   const hasOpenedRef = useRef(false)
+  const initialized = useRef(false)
 
   useEffect(() => {
+    // Effects run again when the Studio shows a tool it kept mounted behind an `<Activity>`
+    // boundary; by then the dialog is already open and would be opened a second time.
+    if (initialized.current) return
+    initialized.current = true
+
     // Only fetch the single asset being edited, then open its edit dialog.
     const queryFilter = `${constructFilter({
       assetTypes: ['file', 'image'],
