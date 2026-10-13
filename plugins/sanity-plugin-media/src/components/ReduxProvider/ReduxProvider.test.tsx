@@ -103,6 +103,50 @@ describe('ReduxProvider store lifecycle', () => {
     })
   })
 
+  it('ends the epics when the browser is unmounted while hidden', async () => {
+    const fetch = vi.fn(() => of({items: []}))
+    const client = createMockSanityClient({
+      observable: {fetch},
+    })
+    let store: Store | undefined
+
+    const tree = (mode: 'visible' | 'hidden') => (
+      <Activity mode={mode}>
+        <ReduxProvider client={client}>
+          <StoreProbe
+            onStore={(next) => {
+              store = next
+            }}
+          />
+        </ReduxProvider>
+      </Activity>
+    )
+    const {rerender, unmount} = render(tree('visible'))
+
+    expect(store).toBeDefined()
+    rerender(tree('hidden'))
+    await act(async () => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0)
+      })
+    })
+    unmount()
+    await act(async () => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0)
+      })
+    })
+
+    dispatchFetch(store!)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(fetch).not.toHaveBeenCalled()
+    expect(store!.getState().assets.fetching).toBe(true)
+  })
+
   it('ends the epics after a real unmount', async () => {
     const fetch = vi.fn(() => of({items: []}))
     const client = createMockSanityClient({

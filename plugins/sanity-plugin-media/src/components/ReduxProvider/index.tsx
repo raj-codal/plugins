@@ -1,6 +1,6 @@
 import {configureStore, type Store, type UnknownAction} from '@reduxjs/toolkit'
 import type {SanityClient} from '@sanity/client'
-import {type ReactNode, useEffect, useRef, useState} from 'react'
+import {type ReactNode, useInsertionEffect, useState} from 'react'
 import {Provider} from 'react-redux'
 import {createEpicMiddleware, ofType} from 'redux-observable'
 import {takeUntil} from 'rxjs'
@@ -110,30 +110,20 @@ function createReduxStore(props: Props): CreatedStore {
 
 function ReduxProvider({children, ...props}: Props) {
   const [{endEpics, store}] = useState(() => createReduxStore(props))
-  const markerRef = useRef<HTMLSpanElement>(null)
 
-  useEffect(() => {
-    const marker = markerRef.current
-    return () => {
-      /*
-       * Effects are also cleaned up when the Studio hides a recently used tool behind an
-       * `<Activity>` boundary (`beta.reactActivityMode`) and when React strict mode simulates an
-       * unmount, but the store in `useState` lives on in both cases. Ending the epics then left
-       * the remount dispatching fetches that nothing handled, so the tool sat on "LOADING…"
-       * forever. Only a real unmount removes the DOM, so that is what ends the epics; a hidden
-       * browser keeps them, and any upload in flight, running.
-       */
-      if (marker?.isConnected) return
-      endEpics()
-    }
-  }, [endEpics])
+  /*
+   * Layout and passive effects are also cleaned up when the Studio hides a recently used tool
+   * behind an `<Activity>` boundary (`beta.reactActivityMode`) and when React strict mode
+   * simulates an unmount, but the store in `useState` lives on in both cases. Ending the epics
+   * then left the remount dispatching fetches that nothing handled, so the tool sat on
+   * "LOADING…" forever. Insertion effects track the DOM instead of visibility: React keeps
+   * them mounted while the tool is hidden — so a hidden browser keeps the epics, and any
+   * upload in flight, running — and still cleans them up when the tree is deleted, hidden or
+   * not, which is when the epics should end.
+   */
+  useInsertionEffect(() => endEpics, [endEpics])
 
-  return (
-    <Provider store={store}>
-      <span ref={markerRef} hidden />
-      {children}
-    </Provider>
-  )
+  return <Provider store={store}>{children}</Provider>
 }
 
 export default ReduxProvider
