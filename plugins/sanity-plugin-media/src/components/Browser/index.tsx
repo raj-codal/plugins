@@ -37,10 +37,9 @@ const BrowserContent = ({
   onClose?: AssetSourceComponentProps['onClose']
   schemaType?: AssetSourceComponentProps['schemaType']
 }) => {
-  const client = useVersionedClient()
   const [portalElement, setPortalElement] = useState<HTMLDivElement | null>(null)
 
-  useBrowserInit(client, schemaType)
+  useBrowserInit(schemaType)
 
   return (
     <PortalProvider element={portalElement}>
@@ -48,7 +47,17 @@ const BrowserContent = ({
         <Dialogs />
         <Notifications />
 
-        <Card data-testid="media-browser" display="flex" height="fill" ref={setPortalElement}>
+        <Card
+          data-testid="media-browser"
+          display="flex"
+          height="fill"
+          // The card is always rendered, so the only `null` React passes is the detach while an
+          // `<Activity>` boundary hides the tool. Keeping the element means an open dialog stays
+          // portaled here instead of remounting in the default portal and back on reveal.
+          ref={(element) => {
+            if (element) setPortalElement(element)
+          }}
+        >
           <Flex direction="column" flex={1}>
             {/* Header */}
             <Header onClose={onClose} />
