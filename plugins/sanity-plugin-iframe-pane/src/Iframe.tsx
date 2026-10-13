@@ -322,6 +322,8 @@ function Frame(props: FrameProps & {ref?: React.Ref<HTMLIFrameElement>}) {
     ref: iframe,
   } = props
 
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   function handleIframeLoad() {
     setLoading(false)
     setReloading(false)
@@ -362,6 +364,7 @@ function Frame(props: FrameProps & {ref?: React.Ref<HTMLIFrameElement>}) {
           // (its first state is `background`, the same as the old `initial`).
           initial={false}
           variants={iframeVariants}
+          custom={prefersReducedMotion}
           animate={[
             loading ? 'background' : 'active',
             reloading ? 'reloading' : 'idle',
@@ -401,13 +404,15 @@ const iframeVariants = {
   reloading: {
     scale: [1, 1, 1, 0.98],
   },
-  active: {
+  active: (prefersReducedMotion: boolean) => ({
     opacity: 1,
     scale: 1,
     // Hold while the spinner fades out, then fade in: the same choreography as the
-    // `[0, 0, 1]` keyframes this replaces, which Motion would replay from 0 on every reveal
-    transition: {opacity: {delay: 0.4, duration: 0.4}},
-  },
+    // `[0, 0, 1]` keyframes this replaces, which Motion would replay from 0 on every reveal.
+    // A variant transition replaces the `MotionConfig` one instead of merging with it, so
+    // reduced motion has to fall back to it explicitly.
+    transition: prefersReducedMotion ? undefined : {opacity: {delay: 0.4, duration: 0.4}},
+  }),
 }
 
 function Loading({iframeSize}: {iframeSize: IframeSizeKey}) {
