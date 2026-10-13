@@ -366,8 +366,14 @@ function Frame(props: FrameProps & {ref?: React.Ref<HTMLIFrameElement>}) {
           // Hold while the spinner fades out, then fade in: the choreography of the `[0, 0, 1]`
           // opacity keyframes `active` used to have, which a replay would run from 0 again. An
           // explicit transition replaces `MotionConfig` for every value, so reduced motion is
-          // honoured here, for all of them.
-          transition={prefersReducedMotion ? {duration: 0} : {opacity: {delay: 0.4, duration: 0.4}}}
+          // honoured here, for all of them. The empty `default` keeps Motion's own per-value
+          // defaults for the size, shadow and scale animations, which otherwise resolve to the
+          // opacity transition and lose their timing.
+          transition={
+            prefersReducedMotion
+              ? {duration: 0}
+              : {default: {}, opacity: {delay: 0.4, duration: 0.4}}
+          }
           animate={[
             loading ? 'background' : 'active',
             reloading ? 'reloading' : 'idle',
