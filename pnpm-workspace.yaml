@@ -174,10 +174,14 @@ minimumReleaseAgeExclude:
   - yuku-ast
   - yuku-codegen
   - yuku-parser
-  # 2026-10-12: The lockfile resolution pulled these current versions into the Sanity next stack.
-  - '@tanstack/react-virtual@3.14.17'
-  - '@tanstack/virtual-core@3.19.2'
+  # 2026-10-13: Existing lockfile pins versions published within the maturity window.
+  - '@tanstack/react-virtual@3.14.18'
+  - '@tanstack/virtual-core@3.19.3'
   - cac@7.1.0
+  - framer-motion@14.1.1
+  - motion-dom@14.1.1
+  - motion-utils@14.1.1
+  - motion@14.1.1
   - i18next@26.4.4
   - '@sentry/browser-utils@11.7.0'
   - '@sentry/browser@11.7.0'
