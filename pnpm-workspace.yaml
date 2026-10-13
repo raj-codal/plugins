@@ -186,6 +186,13 @@ minimumReleaseAgeExclude:
   - '@sentry/react@11.7.0'
   - '@sentry/replay-canvas@11.7.0'
   - '@sentry/replay@11.7.0'
+  # 2026-10-13: Locked versions were published within pnpm's minimum release age window.
+  - '@tanstack/react-virtual@3.14.18'
+  - '@tanstack/virtual-core@3.19.3'
+  - framer-motion@14.1.1
+  - motion-dom@14.1.1
+  - motion-utils@14.1.1
+  - motion@14.1.1
 
 overrides:
   '@types/node': 'catalog:'
