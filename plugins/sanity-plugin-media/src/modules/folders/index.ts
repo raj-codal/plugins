@@ -2,7 +2,7 @@ import {createSelector, createSlice, type PayloadAction} from '@reduxjs/toolkit'
 import type {ClientError, Patch} from '@sanity/client'
 import groq from 'groq'
 import {nanoid} from 'nanoid'
-import {from, of} from 'rxjs'
+import {EMPTY, from, of} from 'rxjs'
 import {
   catchError,
   debounceTime,
@@ -314,7 +314,12 @@ export const foldersListenEpic: MyEpic = (action$, _state$, {client}) =>
     switchMap(() =>
       client
         .listen(groq`*[_type == "${FOLDER_DOCUMENT_NAME}" && !(_id in path("drafts.**"))]`)
-        .pipe(map(() => foldersSlice.actions.fetchRequest())),
+        .pipe(
+          map(() => foldersSlice.actions.fetchRequest()),
+          // Keep a failing listener contained: an error here would otherwise terminate
+          // the combined root epic, stopping every other epic in the store
+          catchError(() => EMPTY),
+        ),
     ),
   )
 

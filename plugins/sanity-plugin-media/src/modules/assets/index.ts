@@ -684,6 +684,9 @@ export const assetsListenEpic: MyEpic = (action$, state$, {client}) =>
                 return EMPTY
             }
           }),
+          // Keep a failing listener contained: an error here would otherwise terminate
+          // the combined root epic, stopping every other epic in the store
+          catchError(() => EMPTY),
         )
     }),
   )
