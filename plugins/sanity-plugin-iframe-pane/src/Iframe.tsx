@@ -365,8 +365,9 @@ function Frame(props: FrameProps & {ref?: React.Ref<HTMLIFrameElement>}) {
           variants={iframeVariants}
           // Hold while the spinner fades out, then fade in: the choreography of the `[0, 0, 1]`
           // opacity keyframes `active` used to have, which a replay would run from 0 again. An
-          // explicit transition overrides `MotionConfig`, so reduced motion is honoured here too.
-          transition={{opacity: prefersReducedMotion ? {duration: 0} : {delay: 0.4, duration: 0.4}}}
+          // explicit transition replaces `MotionConfig` for every value, not just the ones it
+          // names, so reduced motion has to skip the size and reload animations here as well.
+          transition={prefersReducedMotion ? {duration: 0} : {opacity: {delay: 0.4, duration: 0.4}}}
           animate={[
             loading ? 'background' : 'active',
             reloading ? 'reloading' : 'idle',
