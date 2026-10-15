@@ -15,4 +15,4 @@ pre-commit:
 
     - name: css-module-types
       glob: '*.module.css'
-      run: node scripts/css-modules-types.ts && git add '*.module.css.d.ts'
+      run: node scripts/css-modules-types/src/index.ts && git add '*.module.css.d.ts'

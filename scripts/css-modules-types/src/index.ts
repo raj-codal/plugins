@@ -18,7 +18,8 @@ import {styleText} from 'node:util'
 import {transform} from 'lightningcss'
 
 const check = process.argv.includes('--check')
-const root = path.resolve(import.meta.dirname, '..')
+// The repository root: this file is `scripts/css-modules-types/src/index.ts`
+const root = path.resolve(import.meta.dirname, '../../..')
 const exclude = (file: string) =>
   /(?:^|\/)(?:node_modules|dist|storybook-static)(?:\/|$)/.test(file)
 const identifier = /^[A-Za-z_$][\w$]*$/

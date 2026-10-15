@@ -15,9 +15,7 @@
     // so it reports the entry as unused.
     "pnpm-workspace.yaml": ["catalog"],
   },
-  // `@tsdown/css` and `oxc-transform-react` are optional peers `@sanity/tsdown-config` loads at build
-  // time for the `css` and `reactCompiler` options, so no source imports them
-  "ignoreDependencies": ["@tsdown/css", "@vanilla-extract/css", "oxc-transform-react"],
+  "ignoreDependencies": ["@vanilla-extract/css", "oxc-transform-react"],
   "workspaces": {
     ".": {
       "entry": ["*.{ts,mts,mjs}"],
