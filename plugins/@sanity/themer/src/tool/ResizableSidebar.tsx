@@ -133,7 +133,7 @@ export default function ResizableSidebar({
           role="separator"
           tabIndex={0}
         />
-        <Box className={styles.content} height="fill" overflow="hidden">
+        <Box height="fill" overflow="hidden">
           <BoundaryElementProvider element={boundaryElement}>
             <ThemerSidebar
               split={split}

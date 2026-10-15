@@ -2,17 +2,19 @@
   flex: none;
 }
 
+/*
+ * Draws the sidebar's border and gives the resize handle its card colors. It
+ * does not clip, so the handle can straddle the border — the content is
+ * clipped one level down instead.
+ */
 .frame {
   position: relative;
 }
 
-/* The query container the theme list's column count follows (ThemeList.module.css). The
-   container name is global so both modules agree on it */
-.content {
-  container-type: inline-size;
-  container-name: sanity-themer-sidebar;
-}
-
+/*
+ * The grab area along the sidebar's left edge. It straddles the border so it
+ * is easy to hit, and highlights while hovered, focused or dragged.
+ */
 .resizeHandle {
   position: absolute;
   top: 0;

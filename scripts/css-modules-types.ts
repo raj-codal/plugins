@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
  * Writes a `*.module.css.d.ts` next to every CSS module, typed with the exact names Lightning CSS
- * exports for it: the parser and CSS modules defaults `@tsdown/css` builds with. TypeScript picks
- * the file up for `import styles from './X.module.css'`, so `oxlint`'s `typeCheck` reports a
- * misspelled class as TS2551 ("Did you mean …?").
+ * exports for it: the parser and CSS modules defaults `@tsdown/css` builds with. The names are
+ * the authored ones whatever `modules.generateScopedName` a build sets (the pattern only shapes
+ * the hashed values), so only a `localsConvention` would have to be mirrored here. TypeScript
+ * picks the file up for `import styles from './X.module.css'`, so `oxlint`'s `typeCheck` reports
+ * a misspelled class as TS2551 ("Did you mean …?").
  *
  * A file Lightning CSS cannot parse fails the run, as it would fail the build.
  *

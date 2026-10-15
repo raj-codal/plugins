@@ -63,7 +63,8 @@ export function ThemeList({
   )
 
   return (
-    <>
+    // The list's own box is the query container of its grid (`ThemeList.module.css`)
+    <Flex className={styles.root} direction="column" flex={1}>
       <ScrollArea padding={3}>
         <Stack gap={4}>
           {/* The group tells a column from a grid by measuring the cards, and
@@ -201,7 +202,7 @@ export function ThemeList({
       {dialog === 'snippet' && active && (
         <ThemeSnippetDialog onClose={() => actorRef.send({type: 'dialog.close'})} theme={active} />
       )}
-    </>
+    </Flex>
   )
 }
 

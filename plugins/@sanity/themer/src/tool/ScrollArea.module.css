@@ -1,3 +1,4 @@
+/* Always reserves the scrollbar's space, so the content never shifts */
 .root {
   scrollbar-gutter: stable;
 }
