@@ -6,11 +6,11 @@
   position: relative;
 }
 
-/* The query container the theme list's column count follows (ThemeList.module.css). The
-   container name is global so both modules agree on it */
+/* Size container the theme list's column count follows (ThemeList.module.css). Unnamed on
+   purpose: Lightning CSS hashes container-name per CSS module, so a shared name across files
+   would never match — the list uses an anonymous @container against this nearest ancestor. */
 .content {
   container-type: inline-size;
-  container-name: sanity-themer-sidebar;
 }
 
 .resizeHandle {

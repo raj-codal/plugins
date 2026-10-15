@@ -4,9 +4,10 @@
   gap: 16px;
 }
 
-/* Two columns once the sidebar (ResizableSidebar.module.css names the container) is 30% of the
-   way from its minimum width (200px) to its maximum (400px): 200 + 200 * 0.3 = 260px */
-@container sanity-themer-sidebar (min-width: 260px) {
+/* Two columns once the sidebar content box (ResizableSidebar.module.css) is 30% of the way from
+   its minimum width (200px) to its maximum (400px): 200 + 200 * 0.3 = 260px. Anonymous so Lightning
+   CSS module hashing cannot desync a named query from the container-name in the other file. */
+@container (min-width: 260px) {
   .cardGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
