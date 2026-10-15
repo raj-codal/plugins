@@ -145,6 +145,7 @@ minimumReleaseAgeExclude:
   - '@portabletext/*'
   - '@publint/*'
   - '@rollup/*'
+  - '@rolldown/*'
   - '@sanity/*'
   - '@sanity-labs/*'
   - '@tanstack/react-virtual'
@@ -184,6 +185,7 @@ minimumReleaseAgeExclude:
   - react
   - react-dom
   - react-is
+  - rolldown
   - rolldown-plugin-dts
   - sanity
   - styled-components
