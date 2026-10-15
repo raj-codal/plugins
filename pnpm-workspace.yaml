@@ -38,7 +38,7 @@ catalog:
   '@sanity/schema': ^6.18.0
   '@sanity/telemetry': '^1.1.0'
   '@sanity/tsconfig': ^2.2.1
-  '@sanity/tsdown-config': ^0.29.0
+  '@sanity/tsdown-config': ^0.30.0
   '@sanity/types': ^6.18.0
   '@sanity/ui': ^4.4.7
   '@sanity/util': ^6.18.0
@@ -144,8 +144,6 @@ minimumReleaseAgeExclude:
   - '@oxlint-tsgolint/*'
   - '@portabletext/*'
   - '@publint/*'
-  # 2026-10-15: rolldown@1.2.14 and its platform bindings entered the refreshed lockfile.
-  - '@rolldown/*'
   - '@rollup/*'
   - '@sanity/*'
   - '@sanity-labs/*'
@@ -186,7 +184,6 @@ minimumReleaseAgeExclude:
   - react
   - react-dom
   - react-is
-  - rolldown
   - rolldown-plugin-dts
   - sanity
   - styled-components
