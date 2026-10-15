@@ -1,0 +1,47 @@
+.sidebar {
+  flex: none;
+}
+
+.frame {
+  position: relative;
+}
+
+/* The query container the theme list's column count follows (ThemeList.module.css). The
+   container name is global so both modules agree on it */
+.content {
+  container-type: inline-size;
+  container-name: sanity-themer-sidebar;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  z-index: 1;
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizeHandle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 3px;
+  background: var(--card-focus-ring-color);
+  opacity: 0;
+  transition: opacity 100ms;
+}
+
+.resizeHandle:focus {
+  outline: none;
+}
+
+.resizeHandle:hover::after,
+.resizeHandle:focus-visible::after,
+.resizeHandle[data-dragging='true']::after {
+  opacity: 1;
+}

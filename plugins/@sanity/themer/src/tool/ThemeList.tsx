@@ -25,7 +25,7 @@ import {ThemeSnippetDialog} from './ThemeSnippetDialog'
 import {useImagePalette} from './useImagePalette'
 import {usePasteThemeCodes, useThemeCodes} from './useThemeCodes'
 
-import {cardGrid} from './ThemeList.css'
+import styles from './ThemeList.module.css'
 
 /**
  * The flow for picking a theme: a grid of theme cards — the configured theme,
@@ -71,7 +71,7 @@ export function ThemeList({
           <MotionConfig reducedMotion="user">
             <Reorder.Group
               as="div"
-              className={cardGrid}
+              className={styles.cardGrid}
               onReorder={(order: string[]) => actorRef.send({type: 'theme.reorder', order})}
               values={themes.map((theme) => theme.slug)}
             >
