@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@vanilla-extract/dynamic": "catalog:",
     "lodash-es": "catalog:",
     "tinycolor2": "^1.6.0"

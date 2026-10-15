@@ -45,7 +45,7 @@
   "dependencies": {
     "@sanity/icons": "catalog:",
     "@sanity/image-url": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "rxjs": "catalog:"
   },
   "devDependencies": {

@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@sanity/client": "catalog:",
-    "@sanity/ui": "catalog:"
+    "@sanity/ui": "catalog:peer"
   },
   "devDependencies": {
     "@sanity/tsconfig": "catalog:",

@@ -37,7 +37,7 @@
     "prepack": "turbo run build"
   },
   "dependencies": {
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "react-rx": "catalog:",
     "rxjs": "catalog:"
   },

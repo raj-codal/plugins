@@ -97,6 +97,11 @@ catalogs:
   # keep explicit ranges, and peers on other workspace packages keep `workspace:^`
   # (or an explicit range) so changesets can track dependents.
   peer:
+    # Referenced from published `dependencies`, not peers. Auto-updating studios
+    # load `sanity` and its `@sanity/ui` stylesheet from the module CDN, and a
+    # plugin resolving a newer `@sanity/ui` than that bundle gets mis-styled
+    # class names. Raise this floor only once `sanity@latest` ships it.
+    '@sanity/ui': ^4.4.5
     react: ^19.2
     react-dom: ^19.2
     sanity: ^5 || ^6.0.0-0

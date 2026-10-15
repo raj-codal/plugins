@@ -44,7 +44,7 @@
   "dependencies": {
     "@date-fns/tz": "catalog:",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "date-fns": "catalog:"
   },
   "devDependencies": {

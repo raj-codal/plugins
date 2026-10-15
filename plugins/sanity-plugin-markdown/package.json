@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@sanity/client": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "react-simplemde-editor": "^5.2.0"
   },
   "devDependencies": {

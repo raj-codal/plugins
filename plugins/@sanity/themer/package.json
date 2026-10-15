@@ -71,7 +71,7 @@
     "@sanity/color": "catalog:",
     "@sanity/icons": "catalog:",
     "@sanity/themer-legacy": "^0.2.2",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@vanilla-extract/dynamic": "catalog:",
     "@xstate/react": "catalog:",
     "dequal": "catalog:",

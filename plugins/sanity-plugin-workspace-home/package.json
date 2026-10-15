@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "react-is": "catalog:"
   },
   "devDependencies": {

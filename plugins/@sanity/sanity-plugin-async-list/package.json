@@ -39,7 +39,7 @@
   "dependencies": {
     "@sanity/icons": "catalog:",
     "@sanity/studio-secrets": "workspace:^",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "lodash-es": "catalog:"
   },
   "devDependencies": {

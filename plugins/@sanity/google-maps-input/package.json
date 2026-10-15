@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@vis.gl/react-google-maps": "catalog:"
   },
   "devDependencies": {

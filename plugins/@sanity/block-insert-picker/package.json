@@ -42,7 +42,7 @@
   "dependencies": {
     "@portabletext/plugin-input-rule": "^6.0.21",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:"
+    "@sanity/ui": "catalog:peer"
   },
   "devDependencies": {
     "@portabletext/editor": "^7.12.3",

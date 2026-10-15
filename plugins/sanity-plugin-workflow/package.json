@@ -53,7 +53,7 @@
   "dependencies": {
     "@hello-pangea/dnd": "catalog:",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@tanstack/react-virtual": "^3.14.13",
     "lexorank": "catalog:",
     "motion": "catalog:",

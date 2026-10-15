@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "lodash-es": "catalog:",
     "react-photo-album": "catalog:"
   },

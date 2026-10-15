@@ -40,7 +40,7 @@
     "prepack": "turbo run build"
   },
   "dependencies": {
-    "@sanity/ui": "catalog:"
+    "@sanity/ui": "catalog:peer"
   },
   "devDependencies": {
     "@sanity/dashboard": "workspace:*",

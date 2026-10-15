@@ -43,7 +43,7 @@
   "dependencies": {
     "@sanity/icons": "catalog:",
     "@sanity/studio-secrets": "workspace:^",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/uuid": "catalog:",
     "dequal": "catalog:",
     "react-icons": "catalog:",

@@ -40,7 +40,7 @@
     "@hello-pangea/dnd": "catalog:",
     "@sanity/client": "catalog:",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "lexorank": "catalog:",
     "sanity-plugin-utils": "workspace:^"
   },

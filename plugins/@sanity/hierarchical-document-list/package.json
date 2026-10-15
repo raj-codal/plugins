@@ -41,7 +41,7 @@
     "@sanity/color": "catalog:",
     "@sanity/icons": "catalog:",
     "@sanity/mutator": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/util": "catalog:",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1"

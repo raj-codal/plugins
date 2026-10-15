@@ -41,7 +41,7 @@
     "@sanity/icons": "catalog:",
     "@sanity/mutator": "catalog:",
     "@sanity/studio-secrets": "workspace:^",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "dset": "^3.1.4"
   },
   "devDependencies": {

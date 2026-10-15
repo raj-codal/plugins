@@ -40,7 +40,7 @@
     "@portabletext/block-tools": "catalog:",
     "@portabletext/to-html": "catalog:",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/util": "catalog:",
     "sanity-naive-html-serializer": "workspace:^"
   },

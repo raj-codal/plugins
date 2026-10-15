@@ -41,7 +41,7 @@
     "prepack": "turbo run build"
   },
   "dependencies": {
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "lodash-es": "catalog:",
     "rxjs": "catalog:"
   },

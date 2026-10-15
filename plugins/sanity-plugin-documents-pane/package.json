@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/util": "catalog:",
     "@sanity/uuid": "catalog:",
     "dlv": "^1.1.3",

@@ -40,7 +40,7 @@
     "@cloudinary/url-gen": "^1.22.0",
     "@sanity/icons": "catalog:",
     "@sanity/studio-secrets": "workspace:^",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "nanoid": "catalog:"
   },
   "devDependencies": {

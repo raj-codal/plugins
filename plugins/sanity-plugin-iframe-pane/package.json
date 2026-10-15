@@ -40,7 +40,7 @@
     "@sanity/client": "catalog:",
     "@sanity/icons": "catalog:",
     "@sanity/preview-url-secret": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "dequal": "catalog:",
     "motion": "catalog:",
     "suspend-react": "catalog:"

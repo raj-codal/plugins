@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@bynder/compact-view": "^6.1.0",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "video.js": "catalog:"
   },
   "devDependencies": {

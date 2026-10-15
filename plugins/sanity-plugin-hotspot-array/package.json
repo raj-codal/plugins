@@ -39,7 +39,7 @@
   "dependencies": {
     "@sanity/asset-utils": "catalog:",
     "@sanity/image-url": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/util": "catalog:",
     "lodash-es": "catalog:",
     "motion": "catalog:"

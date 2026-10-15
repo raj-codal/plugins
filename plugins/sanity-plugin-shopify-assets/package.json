@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "axios": "^1.19.0",
     "pretty-bytes": "^6.1.1",
     "pretty-ms": "^8.0.0",

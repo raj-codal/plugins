@@ -40,7 +40,7 @@
     "@sanity/asset-utils": "catalog:",
     "@sanity/icons": "catalog:",
     "@sanity/image-url": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "dequal": "catalog:",
     "rxjs": "catalog:"
   },

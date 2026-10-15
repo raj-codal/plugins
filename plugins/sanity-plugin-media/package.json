@@ -48,7 +48,7 @@
     "@sanity/client": "catalog:",
     "@sanity/color": "catalog:",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/uuid": "catalog:",
     "@tanem/react-nprogress": "^5.0.63",
     "copy-to-clipboard": "^3.3.3",

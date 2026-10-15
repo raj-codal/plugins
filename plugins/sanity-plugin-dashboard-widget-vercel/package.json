@@ -43,7 +43,7 @@
     "@hookform/resolvers": "catalog:",
     "@sanity/color": "catalog:",
     "@sanity/icons": "catalog:",
-    "@sanity/ui": "catalog:",
+    "@sanity/ui": "catalog:peer",
     "@sanity/uuid": "catalog:",
     "@tanstack/react-query": "^5.101.4",
     "@xstate/react": "catalog:",
