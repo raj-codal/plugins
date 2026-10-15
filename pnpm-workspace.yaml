@@ -144,6 +144,8 @@ minimumReleaseAgeExclude:
   - '@oxlint-tsgolint/*'
   - '@portabletext/*'
   - '@publint/*'
+  # 2026-10-15: rolldown@1.2.14 and its platform bindings entered the refreshed lockfile.
+  - '@rolldown/*'
   - '@rollup/*'
   - '@sanity/*'
   - '@sanity-labs/*'
@@ -184,6 +186,7 @@ minimumReleaseAgeExclude:
   - react
   - react-dom
   - react-is
+  - rolldown
   - rolldown-plugin-dts
   - sanity
   - styled-components
