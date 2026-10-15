@@ -7,6 +7,7 @@
     "build": "turbo build",
     "changeset": "changeset",
     "check:deps": "knip --dependencies",
+    "css:types": "node scripts/css-modules-types.ts",
     "dev": "pnpm turbo dev --filter=test-studio",
     "dev:storybook": "pnpm --filter plugins-storybook dev",
     "devtools:test-studio": "pnpm devtools:test-studio:build && ENABLE_VITE_DEVTOOLS=true pnpm dev",
@@ -21,8 +22,9 @@
     "issue-triage": "node scripts/trigger-triage/src/index.ts",
     "issue-triage:archive": "node scripts/trigger-triage/src/archive.ts",
     "knip": "knip",
-    "lint": "pnpm run oxlint",
-    "lint:fix": "pnpm lint --fix --fix-suggestions",
+    "lint": "node scripts/css-modules-types.ts --check && pnpm run lint:css && pnpm run oxlint",
+    "lint:css": "stylelint \"**/*.css\"",
+    "lint:fix": "pnpm run css:types && pnpm lint --fix --fix-suggestions",
     "lint:workflows": "if command -v zizmor >/dev/null 2>&1; then zizmor .github --min-severity high; else echo 'zizmor not found. Install it: https://docs.zizmor.sh/installation/'; exit 1; fi",
     "oxlint": "oxlint --disable-nested-config",
     "postgenerate": "pnpm install && pnpm format && pnpm build",
@@ -38,6 +40,7 @@
   },
   "dependencies": {
     "@sanity/plugin-kit": "workspace:*",
+    "lightningcss": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
@@ -54,6 +57,9 @@
     "eslint-plugin-storybook": "^10.6.0",
     "knip": "^6.33.0",
     "lefthook": "^2.1.14",
+    "stylelint": "^17.16.0",
+    "stylelint-config-css-modules": "^4.6.0",
+    "stylelint-config-recommended": "^18.0.0",
     "vercel": "^60.1.3"
   },
   "packageManager": "pnpm@12.6.0"
