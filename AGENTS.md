@@ -218,13 +218,13 @@ Two things are required:
 
 The CI pipeline runs on every PR:
 
-| Job                | What it checks                                                 |
-| ------------------ | -------------------------------------------------------------- |
-| **build**          | `pnpm build` - All packages compile successfully               |
-| **lint**           | `pnpm lint --format github` - Code passes oxlint               |
-| **knip**           | `pnpm knip` - No unused files, dependencies or exports         |
-| **test**           | `pnpm test` - All tests pass (runs after build + lint)         |
-| **storybook-test** | `pnpm test:browser` - Every story renders in headless Chromium |
+| Job                | What it checks                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------ |
+| **build**          | `pnpm build` - All packages compile successfully                                                       |
+| **lint**           | `pnpm lint --format github` - CSS module typings are current, CSS passes stylelint, code passes oxlint |
+| **knip**           | `pnpm knip` - No unused files, dependencies or exports                                                 |
+| **test**           | `pnpm test` - All tests pass (runs after build + lint)                                                 |
+| **storybook-test** | `pnpm test:browser` - Every story renders in headless Chromium                                         |
 
 Note on **knip**: in-file usage keeps an exported type "used" (`ignoreExportsUsedInFile`), so removing a type assertion or annotation that was the last reference to an exported type will make knip start flagging that export. Run `pnpm knip` after refactors that remove type references.
 
@@ -232,7 +232,8 @@ Note on **knip**: in-file usage keeps an exported type "used" (`ignoreExportsUse
 
 - **oxlint**: Type-aware linting with `--deny-warnings` (warnings are errors). React Compiler rules run natively via the [React Compiler vendored into oxlint](https://oxc.rs/blog/2026-08-18-react-compiler-support.html); the root `oxlint.config.ts` enables all of them (stricter than the plugin-kit preset) since this monorepo builds plugins with React Compiler.
 - **TypeScript type checking** is included in `pnpm lint` via oxlint — no separate `tsc` needed
-- Run `pnpm lint:fix` to auto-fix issues when possible
+- **stylelint** lints every `*.css` file (`pnpm lint:css`, part of `pnpm lint`) with the `@sanity/plugin-kit/stylelint` preset: `stylelint-config-recommended` plus `stylelint-config-css-modules`, formatting rules off since oxfmt owns formatting. The root `stylelint.config.mjs` imports and spreads the preset; it is `.mjs` on purpose, as stylelint loads `.ts` configs through the TypeScript compiler API that TypeScript 7 does not ship. stylelint 17 has no GitHub formatter, so the CI lint job registers `.github/problem-matchers/stylelint.json` to turn its default output into annotations.
+- Run `pnpm lint:fix` to auto-fix issues when possible (regenerates the CSS module typings, then stylelint and oxlint with `--fix`)
 
 ## Testing
 
