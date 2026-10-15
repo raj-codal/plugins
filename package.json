@@ -8,7 +8,7 @@
     "changeset": "changeset",
     "check:deps": "knip --dependencies",
     "css:types": "pnpm --filter @repo/css-modules-kit run generate",
-    "css:types:check": "pnpm run css:types && git add --intent-to-add -- ':(glob)**/*.module.css.d.ts' && git diff --exit-code -- ':(glob)**/*.module.css.d.ts'",
+    "css:types:check": "pnpm run css:types && git add --intent-to-add -- ':(glob)**/*.module.css.d.ts' && (git diff --exit-code -- ':(glob)**/*.module.css.d.ts' || (echo 'The CSS module typings above are out of date: commit what `pnpm css:types` regenerated' && exit 1))",
     "dev": "pnpm turbo dev --filter=test-studio",
     "dev:storybook": "pnpm --filter plugins-storybook dev",
     "devtools:test-studio": "pnpm devtools:test-studio:build && ENABLE_VITE_DEVTOOLS=true pnpm dev",
