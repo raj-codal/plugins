@@ -582,6 +582,15 @@ pnpm lint:fix    # Auto-fix what's possible
 
 The shared rules (plugins, options, categories, rules) live in the `@sanity/plugin-kit/oxlint` config (`packages/@sanity/plugin-kit/src/oxlint.ts`), which the root `oxlint.config.ts` extends; only workspace-specific ignores and overrides belong in the root config. Standalone plugins scaffolded with `plugin-kit init` re-export the same shared config. Note that `ignorePatterns` do not propagate through `extends`, so the root config spreads the shared patterns before adding its own. Like `pnpm format`, `pnpm lint` requires Node `>=22.18` to load the TypeScript config.
 
+### CSS modules
+
+`@sanity/themer` styles its tool with `*.module.css` files, built by `@tsdown/css` (Lightning CSS) through the `css` option of `@sanity/tsdown-config`. What to know when writing or reviewing one:
+
+- **Every CSS module has a generated `X.module.css.d.ts` next to it, committed.** `pnpm css:types` (`scripts/css-modules-types`) writes them with the exact names Lightning CSS exports, so a typo like `styles.removedThumbnails` fails `pnpm lint` with `TS2551 … Did you mean 'removedThumbnail'?`. `pnpm lint` starts with `--check`, which fails on a missing, stale or orphaned typings file (`run pnpm css:types`), and the lefthook pre-commit hook regenerates and stages them. There is no ambient `declare module '*.module.css'` to fall back on; keep it that way.
+- **Lightning CSS scopes more than classes.** With `cssModules` on, `@keyframes`, `container-name`, `view-transition-class`, the classes inside `::view-transition-*(.x)` and the idents inside `:active-view-transition-type(x)` are all hashed per file, and exported alongside the classes (a container name shows up in the typings too). Keep a `@container` query in the same module as the `container-name` it queries — a shared name across two files never matches, and `@tsdown/css` sets `cssModules` itself, so `container: false` cannot be configured — and mark identifiers that must stay public with `:global()`, e.g. `:root:global(:active-view-transition-type(sanity-themer))`.
+- **The scoped names hash the stylesheet's content** (`generateScopedName: '[content-hash]_[local]'` in the plugin's `tsdown.config.ts`), so a release that changes a file's styles gets new names for them. Custom properties are not scoped (`dashedIdents` is off); namespace them, e.g. `--themer-preview-bg`, and type an inline `style` that sets them through an interface extending `CSSProperties` rather than a type assertion.
+- **The test studio compiles the same files with Vite**, so `dev/test-studio/sanity.cli.ts` sets `css.transformer: 'lightningcss'` with the same `cssModules.pattern`. The studio then renders exactly the names the build ships, which also makes `sanity dev` a faithful check of the hashing. Mirror both settings when one changes.
+
 ## Project Structure
 
 ```
