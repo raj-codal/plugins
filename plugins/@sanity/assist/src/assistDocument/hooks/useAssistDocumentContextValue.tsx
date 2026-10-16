@@ -45,14 +45,14 @@ export function useAssistDocumentContextValue(documentId: string, documentType: 
     editState,
     targetDocumentState,
   } = useDocumentPane()
-  const {selectedReleaseId, selectedVariant} = usePerspective()
+  const {selectedReleaseId, selectedVariants} = usePerspective()
   const {draft, published, version} = editState || {}
 
   const assistableDocumentId = getAssistWriteDocumentId({
     documentId,
     liveEdit: documentSchemaType.liveEdit,
     releaseId: selectedReleaseId,
-    variant: selectedVariant,
+    variant: selectedVariants[0],
     targetDocumentState,
   })
   const scopeId = assistableDocumentId ? getVersionFromId(assistableDocumentId) : undefined
