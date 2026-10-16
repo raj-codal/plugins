@@ -38,9 +38,9 @@ catalog:
   '@sanity/schema': ^6.19.0
   '@sanity/telemetry': '^1.1.0'
   '@sanity/tsconfig': ^2.2.1
-  '@sanity/tsdown-config': ^0.29.0
+  '@sanity/tsdown-config': ^0.31.1
   '@sanity/types': ^6.19.0
-  '@sanity/ui': ^4.4.5
+  '@sanity/ui': ^4.4.9
   '@sanity/util': ^6.19.0
   '@sanity/uuid': ^3.0.3
   '@sanity/vanilla-extract-vite-plugin': ^0.3.0
@@ -64,23 +64,23 @@ catalog:
   jsdom: ^29.1.1
   lexorank: ^1.0.5
   lodash-es: ^4.18.1
-  motion: ^14.1.0
+  motion: ^14.2.0
   nanoid: ^6.0.2
-  oxc-transform-react: ^0.153.0
+  oxc-transform-react: ^0.154.0
   oxfmt: ^0.73.0
   oxlint: ^1.83.0
   oxlint-tsgolint: ^7.0.2003
-  react: ^19.3.0
-  react-dom: ^19.3.0
+  react: ^19.3.1
+  react-dom: ^19.3.1
   react-hook-form: ^7.90.0
   react-icons: ^5.7.0
-  react-is: ^19.3.0
+  react-is: ^19.3.1
   react-photo-album: ^3.6.0
-  react-rx: ^7.0.1
+  react-rx: ^7.1.0
   rxjs: ^7.8.2
   sanity: ^6.19.0
   scroll-into-view-if-needed: ^3.1.0
-  styled-components: ^6.5.3
+  styled-components: ^6.6.0
   suspend-react: ^0.1.3
   tsdown: ^0.23.1
   tsx: ^4.23.15
@@ -125,14 +125,14 @@ strictPeerDependencies: false
 # `--config.minimumReleaseAge=0` — that is not allowed). Avoid permanent
 # third-party package-name excludes solely to land a fresh release.
 #
-# The motion packages, the oxc transform packages and `styled-components` are
-# the exception. Renovate forces their bumps from the Dependency Dashboard while
-# the release is still inside the window, and the `name@version` entries pnpm
-# writes for them never survive: Renovate only commits `pnpm-lock.yaml`, so CI's
-# frozen install then rejects the lockfile with
-# ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION. Each release also pins its siblings
-# and platform bindings to exact versions, so the whole family has to be listed,
-# not just the package Renovate names.
+# The motion packages, the oxc transform packages, the TanStack virtual packages
+# and `styled-components` are the exception. Renovate forces their bumps from
+# the Dependency Dashboard while the release is still inside the window, and the
+# `name@version` entries pnpm writes for them never survive: Renovate only
+# commits `pnpm-lock.yaml`, so CI's frozen install then rejects the lockfile
+# with ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION. Each release also pins its
+# siblings and platform bindings to exact versions, so the whole family has to
+# be listed, not just the package Renovate names.
 minimumReleaseAgeExcludePrune: true
 minimumReleaseAgeExclude:
   - '@changesets/cli'
@@ -147,6 +147,8 @@ minimumReleaseAgeExclude:
   - '@rollup/*'
   - '@sanity/*'
   - '@sanity-labs/*'
+  - '@tanstack/react-virtual'
+  - '@tanstack/virtual-core'
   - '@types/*'
   - '@types/react@19.3.0'
   - '@types/react-dom@19.3.0'
@@ -182,6 +184,7 @@ minimumReleaseAgeExclude:
   - react
   - react-dom
   - react-is
+  - react-rx
   - rolldown-plugin-dts
   - sanity
   - styled-components
@@ -192,9 +195,6 @@ minimumReleaseAgeExclude:
   - yuku-ast
   - yuku-codegen
   - yuku-parser
-  # 2026-10-13: Sanity 6.19.1-next.6 resolves these new transitive releases.
-  - '@tanstack/react-virtual@3.14.18'
-  - '@tanstack/virtual-core@3.19.3'
   - cac@7.1.0
   - i18next@26.4.4
   - '@sentry/browser-utils@11.7.0'
