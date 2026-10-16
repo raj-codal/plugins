@@ -1,7 +1,12 @@
 import type {SystemVariant, TargetDocumentState, VersionInfoDocumentStub} from 'sanity'
 import {describe, expect, test} from 'vitest'
 
-import {assistDocumentId, assistTasksStatusId, getAssistWriteDocumentId} from './ids'
+import {
+  assistDocumentId,
+  assistTasksStatusId,
+  getAssistSyncScopeId,
+  getAssistWriteDocumentId,
+} from './ids'
 
 const DOCUMENT_ID = 'article-1'
 
@@ -125,7 +130,20 @@ describe('getAssistWriteDocumentId', () => {
     ).toBe('drafts.article-1')
   })
 
-  test('falls back to the published virtual-draft ref when a variant is selected', () => {
+  test('targets the draft sibling when a variant is selected and the draft exists', () => {
+    expect(
+      getAssistWriteDocumentId({
+        documentId: DOCUMENT_ID,
+        variant: selectedVariant(),
+        targetDocumentState: readyState({
+          published: stub('versions.pub.article-1', 'versions.draft.article-1'),
+          draft: stub('versions.draft.article-1'),
+        }),
+      }),
+    ).toBe('versions.draft.article-1')
+  })
+
+  test('does not use the advertised draft of a ready published variant', () => {
     expect(
       getAssistWriteDocumentId({
         documentId: DOCUMENT_ID,
@@ -134,7 +152,7 @@ describe('getAssistWriteDocumentId', () => {
           published: stub(DOCUMENT_ID, 'versions.scope.article-1'),
         }),
       }),
-    ).toBe('versions.scope.article-1')
+    ).toBeUndefined()
   })
 
   test('targets the advertised draft variant after a draft variant is published (variant-missing)', () => {
@@ -155,6 +173,47 @@ describe('getAssistWriteDocumentId', () => {
         },
       }),
     ).toBe('versions.draft.article-1')
+  })
+
+  test('prefers creatableTarget.id for a drafts-bundle variant-missing target', () => {
+    const variant = selectedVariant()
+    expect(
+      getAssistWriteDocumentId({
+        documentId: DOCUMENT_ID,
+        variant,
+        targetDocumentState: {
+          status: 'variant-missing',
+          variant,
+          bundle: 'drafts',
+          siblings: {
+            published: stub('versions.pub.article-1', 'versions.should-not-use'),
+            draft: undefined,
+            version: undefined,
+          },
+          creatableTarget: {id: 'versions.draft.article-1', scopeId: 'draft'},
+        },
+      }),
+    ).toBe('versions.draft.article-1')
+  })
+
+  test('returns undefined for a published-bundle variant-missing target', () => {
+    const variant = selectedVariant()
+    expect(
+      getAssistWriteDocumentId({
+        documentId: DOCUMENT_ID,
+        variant,
+        targetDocumentState: {
+          status: 'variant-missing',
+          variant,
+          bundle: 'published',
+          siblings: {
+            published: stub('versions.pub.article-1', 'versions.draft.article-1'),
+            draft: undefined,
+            version: undefined,
+          },
+        },
+      }),
+    ).toBeUndefined()
   })
 
   test('returns undefined when a variant is selected but no advertised draft ref exists', () => {
@@ -224,5 +283,17 @@ describe('getAssistWriteDocumentId', () => {
         targetDocumentState: readyState({draft: stub(`drafts.${DOCUMENT_ID}`)}),
       }),
     ).toBeUndefined()
+  })
+})
+
+describe('getAssistSyncScopeId', () => {
+  test.each([
+    {documentId: undefined, scopeId: undefined},
+    {documentId: 'article-1', scopeId: undefined},
+    {documentId: 'drafts.article-1', scopeId: undefined},
+    {documentId: 'versions.rSummer.article-1', scopeId: 'rSummer'},
+    {documentId: 'versions.hM3zWXZA25NzhcrD.article-1', scopeId: 'hM3zWXZA25NzhcrD'},
+  ])('returns $scopeId for $documentId', ({documentId, scopeId}) => {
+    expect(getAssistSyncScopeId(documentId)).toBe(scopeId)
   })
 })
