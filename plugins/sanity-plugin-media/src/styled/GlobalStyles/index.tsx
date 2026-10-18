@@ -20,6 +20,8 @@ const customScrollbar = css`
 
 const GlobalStyle = createGlobalStyle`
   .media__custom-scrollbar {
+    /* Virtualized rows are padded in and out. Anchoring would move scrollTop to match. */
+    overflow-anchor: none;
     ${customScrollbar}
   }
 

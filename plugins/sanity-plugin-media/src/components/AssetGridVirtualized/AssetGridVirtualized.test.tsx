@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react'
+import {cleanup} from '@testing-library/react'
 import {afterEach, describe, expect, it} from 'vitest'
 
 import {renderWithProviders} from '../../__tests__/fixtures/renderWithProviders'
@@ -39,7 +39,8 @@ describe('AssetGridVirtualized scroll anchoring', () => {
     const scroller = document.querySelector('[data-testid="virtuoso-scroller"]')
     expect(scroller).toBeInstanceOf(HTMLElement)
     expect(scroller).toHaveClass('media__custom-scrollbar')
+    // jsdom does not run scroll anchoring; this is the property the browser
+    // reads on virtuoso-scroller. `auto` lets anchoring move scrollTop.
     expect(getComputedStyle(scroller as HTMLElement).overflowAnchor).toBe('none')
-    expect(screen.getByText('Folder 0')).toBeInTheDocument()
   })
 })

@@ -99,7 +99,12 @@ const AssetGridVirtualized = (props: Props) => {
         return <VirtualCell item={item} selected={selected} source={source} />
       }}
       overscan={48}
-      style={{overflowX: 'hidden', overflowY: 'scroll'}}
+      style={{
+        // Virtuoso lists opt each row out of scroll anchoring. The grid scroller has to do it here.
+        overflowAnchor: 'none',
+        overflowX: 'hidden',
+        overflowY: 'scroll',
+      }}
       totalCount={totalCount}
     />
   )

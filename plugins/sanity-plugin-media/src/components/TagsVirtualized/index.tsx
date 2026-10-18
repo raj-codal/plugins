@@ -149,7 +149,7 @@ const TagsVirtualized = ({tags}: {tags: TagItem[]}) => {
       itemContent={(index) => {
         return <VirtualRow isScrolling={isScrolling} item={items[index]!} />
       }}
-      style={{flex: 1, overflowX: 'hidden'}}
+      style={{flex: 1, overflowAnchor: 'none', overflowX: 'hidden'}}
       totalCount={items.length}
     />
   )
