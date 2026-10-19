@@ -42,7 +42,7 @@ export function useInstructionToaster(documentId: string, documentSchemaType: Ob
       endedTasks?.forEach((task) => {
         const title =
           task.title ??
-          getInstructionTitle(task.instruction ?? getStartedInstruction(documentId, task.path))
+          getInstructionTitle(task.instruction ?? getStartedInstruction(documentId, task))
         if (task.reason === 'error') {
           toast.push({
             title: `Failed: ${title}`,

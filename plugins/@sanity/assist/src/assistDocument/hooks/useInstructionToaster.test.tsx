@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import {act, renderHook} from '@testing-library/react'
 import type {ObjectSchemaType} from 'sanity'
-import {beforeEach, describe, expect, test, vi} from 'vitest'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 import {RunInstructionProvider, useRunInstruction} from '../../assistLayout/RunInstructionProvider'
 import {
@@ -58,20 +58,38 @@ function endedTask(task: Partial<InstructionTask> = {}): InstructionTask {
   }
 }
 
-function setup(documentId: string) {
+function useOnePane() {
+  useInstructionToaster('drafts.article-1', schemaType)
+  return useRunInstruction()
+}
+
+function useTwoPanes() {
+  useInstructionToaster('drafts.article-1', schemaType)
+  useInstructionToaster('drafts.article-1', schemaType)
+  return useRunInstruction()
+}
+
+function setup({twoPanes = false}: {twoPanes?: boolean} = {}) {
   vi.mocked(useStudioAssistDocument).mockReturnValue(assistDocument([]))
-  const hook = renderHook(
-    () => {
-      useInstructionToaster(documentId, schemaType)
-      return useRunInstruction()
-    },
-    {wrapper: RunInstructionProvider},
-  )
-  const endTask = (task: InstructionTask) => {
-    vi.mocked(useStudioAssistDocument).mockReturnValue(assistDocument([task]))
+  const hook = renderHook(twoPanes ? useTwoPanes : useOnePane, {wrapper: RunInstructionProvider})
+  const run = ({documentId = 'drafts.article-1', path = 'title'} = {}) =>
+    act(() =>
+      hook.result.current.runInstruction({
+        documentId,
+        assistDocumentId: 'sanity.assist.schemaType.article',
+        path,
+        instruction,
+      }),
+    )
+  const setTasks = (tasks: InstructionTask[]) => {
+    vi.mocked(useStudioAssistDocument).mockReturnValue(assistDocument(tasks))
     hook.rerender()
   }
-  return {hook, endTask}
+  return {run, setTasks}
+}
+
+function toastTitles() {
+  return push.mock.calls.map(([toast]) => toast.title)
 }
 
 describe('useInstructionToaster', () => {
@@ -79,18 +97,15 @@ describe('useInstructionToaster', () => {
     push.mockClear()
   })
 
-  test('names a custom instruction task stored without title and instructionKey', () => {
-    const {hook, endTask} = setup('drafts.article-1')
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
-    act(() =>
-      hook.result.current.runInstruction({
-        documentId: 'drafts.article-1',
-        assistDocumentId: 'sanity.assist.schemaType.article',
-        path: 'title',
-        instruction,
-      }),
-    )
-    endTask(endedTask())
+  test('names a custom instruction task stored without title and instructionKey', () => {
+    const {run, setTasks} = setup()
+
+    run()
+    setTasks([endedTask()])
 
     expect(push).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({title: 'Success: Create title from body', status: 'success'}),
@@ -98,56 +113,63 @@ describe('useInstructionToaster', () => {
   })
 
   test('matches a run started with the published id against the draft form value', () => {
-    const {hook, endTask} = setup('drafts.article-1')
+    const {run, setTasks} = setup()
 
-    act(() =>
-      hook.result.current.runInstruction({
-        documentId: 'article-1',
-        assistDocumentId: 'sanity.assist.schemaType.article',
-        path: 'title',
-        instruction,
-      }),
-    )
-    endTask(endedTask())
+    run({documentId: 'article-1'})
+    setTasks([endedTask()])
 
-    expect(push).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({title: 'Success: Create title from body'}),
-    )
+    expect(toastTitles()).toEqual(['Success: Create title from body'])
   })
 
-  test('falls back to Untitled for a path this user did not start an instruction on', () => {
-    const {hook, endTask} = setup('drafts.article-1')
+  test('falls back to Untitled for a path this tab did not start an instruction on', () => {
+    const {run, setTasks} = setup()
 
-    act(() =>
-      hook.result.current.runInstruction({
-        documentId: 'drafts.article-1',
-        assistDocumentId: 'sanity.assist.schemaType.article',
-        path: 'body',
-        instruction,
-      }),
-    )
-    endTask(endedTask())
+    run({path: 'body'})
+    setTasks([endedTask()])
 
-    expect(push).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({title: 'Success: Untitled'}),
-    )
+    expect(toastTitles()).toEqual(['Success: Untitled'])
   })
 
   test('prefers the title stored on the task', () => {
-    const {hook, endTask} = setup('drafts.article-1')
+    const {run, setTasks} = setup()
 
-    act(() =>
-      hook.result.current.runInstruction({
-        documentId: 'drafts.article-1',
-        assistDocumentId: 'sanity.assist.schemaType.article',
-        path: 'title',
-        instruction,
-      }),
-    )
-    endTask(endedTask({title: 'Generate caption'}))
+    run()
+    setTasks([endedTask({title: 'Generate caption'})])
 
-    expect(push).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({title: 'Success: Generate caption'}),
-    )
+    expect(toastTitles()).toEqual(['Success: Generate caption'])
+  })
+
+  test('does not reuse a finished run for a later task on the same path from another tab', () => {
+    const {run, setTasks} = setup()
+
+    run()
+    const ownTask = endedTask()
+    setTasks([ownTask])
+    setTasks([ownTask, endedTask({_key: 'task-2'})])
+
+    expect(toastTitles()).toEqual(['Success: Create title from body', 'Success: Untitled'])
+  })
+
+  test('does not name a task that started long after the run this tab requested', () => {
+    vi.useFakeTimers({toFake: ['Date']})
+    const {run, setTasks} = setup()
+
+    run()
+    vi.setSystemTime(Date.now() + 5 * 60_000)
+    setTasks([endedTask()])
+
+    expect(toastTitles()).toEqual(['Success: Untitled'])
+  })
+
+  test('names the task in every pane showing the document', () => {
+    const {run, setTasks} = setup({twoPanes: true})
+
+    run()
+    setTasks([endedTask()])
+
+    expect(toastTitles()).toEqual([
+      'Success: Create title from body',
+      'Success: Create title from body',
+    ])
   })
 })

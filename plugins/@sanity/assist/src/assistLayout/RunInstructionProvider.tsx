@@ -20,7 +20,12 @@ import {FormFieldHeaderText} from 'sanity'
 import type {CustomInputResult, GetUserInput} from '../fieldActions/useUserInput'
 import {assistTasksStatusId} from '../helpers/ids'
 import {getInstructionTitle} from '../helpers/misc'
-import {type StudioInstruction, type UserInputBlock, userInputTypeName} from '../types'
+import {
+  type InstructionTask,
+  type StudioInstruction,
+  type UserInputBlock,
+  userInputTypeName,
+} from '../types'
 import {type RunInstructionRequest, useApiClient, useRunInstructionApi} from '../useApiClient'
 import {useAiAssistanceConfig} from './AiAssistanceConfigContext'
 import type {RunInstructionArgs} from './AssistLayout'
@@ -33,14 +38,26 @@ export interface RunInstructionContextValue {
   getUserInput: GetUserInput
   instructionLoading: boolean
   /**
-   * The instruction last started by this user for a document path. Custom instruction tasks
-   * are stored without `instructionKey` and `title`, so this is the only way to name them.
+   * The instruction this tab started for the task. Custom instruction tasks are stored without
+   * `instructionKey` and `title`, so this is the only way to name them.
    */
   getStartedInstruction: (
     documentId: string,
-    path: string | undefined,
+    task: Pick<InstructionTask, '_key' | 'path' | 'started'>,
   ) => StudioInstruction | undefined
 }
+
+interface StartedInstruction {
+  instruction: StudioInstruction
+  requestedAt: number
+  taskKey?: string
+}
+
+/**
+ * How far a task's `started` may be from the request that started it. Covers the service's
+ * delay in creating the task plus clock skew between the browser and the server.
+ */
+const STARTED_TASK_MATCH_WINDOW_MS = 10_000
 
 const RunInstructionContext = createContext<RunInstructionContextValue>({
   runInstruction: () => {},
@@ -68,20 +85,35 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
 
   const id = useId()
 
-  const startedInstructions = useRef(new Map<string, StudioInstruction>())
+  const startedInstructions = useRef(new Map<string, StartedInstruction>())
   const startInstruction = useCallback(
     (request: RunInstructionRequest, instruction: StudioInstruction) => {
-      startedInstructions.current.set(
-        startedInstructionKey(request.documentId, request.path),
+      startedInstructions.current.set(startedInstructionKey(request.documentId, request.path), {
         instruction,
-      )
+        requestedAt: Date.now(),
+      })
       void runInstructionRequest(request)
     },
     [runInstructionRequest],
   )
   const getStartedInstruction = useCallback(
-    (documentId: string, path: string | undefined) =>
-      path ? startedInstructions.current.get(startedInstructionKey(documentId, path)) : undefined,
+    (documentId: string, task: Pick<InstructionTask, '_key' | 'path' | 'started'>) => {
+      if (!task.path || !task.started) {
+        return undefined
+      }
+      const started = startedInstructions.current.get(startedInstructionKey(documentId, task.path))
+      if (!started) {
+        return undefined
+      }
+      if (started.taskKey === undefined) {
+        const offset = new Date(task.started).getTime() - started.requestedAt
+        if (Math.abs(offset) > STARTED_TASK_MATCH_WINDOW_MS) {
+          return undefined
+        }
+        started.taskKey = task._key
+      }
+      return started.taskKey === task._key ? started.instruction : undefined
+    },
     [],
   )
 
