@@ -1,5 +1,5 @@
-import {useEffect} from 'react'
-import {typed, useClient} from 'sanity'
+import type {SanityClient} from '@sanity/client'
+import {typed} from 'sanity'
 
 import {randomKey} from '../_lib/randomKey'
 import {maxHistoryVisibilityMs} from '../constants'
@@ -17,40 +17,35 @@ export interface RecentInstructionRun {
 }
 
 /**
- * Custom instruction runs succeed without `title` or `instructionKey` on the
- * task document (built-in actions such as image description still write both).
- * The completion toast and run history resolve the label from those fields, so
- * a custom instruction otherwise shows up as "Untitled".
- *
- * The run request already knows the instruction. Remember it here, copy it
- * onto the task the studio is showing, and write the same fields back once the
- * task has finished so a later session can still read them.
+ * The instruction request returns before the service inserts its task, and a
+ * `set` on `tasks[_key=="…"]` does not create a missing array item. Remember
+ * the run so the toast can show the title immediately, then write that title
+ * onto the service's task once the item exists.
  */
 
-const STORAGE_KEY = 'sanity.assist.recent-instruction-runs'
 const STARTED_CLOCK_SKEW_MS = 15_000
 const START_WINDOW_MS = 60_000
 const MAX_REMEMBERED_RUNS = 50
+const TASK_LOOKUP_ATTEMPTS = 20
+const TASK_LOOKUP_INTERVAL_MS = 200
 
-const backfilledTaskIds = new Set<string>()
-let memory: RecentInstructionRun[] | undefined
+const reservedTaskKeys = new Set<string>()
+let memory: RecentInstructionRun[] = []
 
-export function recordRecentInstructionRun(run: Omit<RecentInstructionRun, 'id'>): string {
-  const next = remember({...run, id: randomKey(12)})
-  return next.id
+export function recordRecentInstructionRun(
+  run: Omit<RecentInstructionRun, 'id'>,
+): RecentInstructionRun {
+  const stored = {...run, id: randomKey(12)}
+  memory = fresh([...getRecentInstructionRuns(), stored])
+  return stored
 }
 
 export function discardRecentInstructionRun(id: string) {
-  const current = getRecentInstructionRuns()
-  const next = current.filter((run) => run.id !== id)
-  if (next.length === current.length) return
-  memory = next
-  persist(next)
+  memory = getRecentInstructionRuns().filter((run) => run.id !== id)
 }
 
 export function getRecentInstructionRuns(): RecentInstructionRun[] {
-  const merged = mergeRuns(memory ?? [], readStorage())
-  memory = fresh(merged)
+  memory = fresh(memory)
   return memory
 }
 
@@ -70,6 +65,47 @@ export function enrichInstructionTasks(
       title: task.title ?? run.title,
     }
   })
+}
+
+export async function writeInstructionTaskTitle(client: SanityClient, run: RecentInstructionRun) {
+  const statusId = assistTasksStatusId(run.documentId)
+  // The create response returns before the service inserts the task, so each
+  // read has to follow the previous one.
+  /* oxlint-disable no-await-in-loop */
+  for (let attempt = 0; attempt < TASK_LOOKUP_ATTEMPTS; attempt++) {
+    const doc = await client.getDocument<AssistTasksStatus>(statusId).catch(() => undefined)
+    const task = findUnlabeledTask(doc?.tasks ?? [], run)
+    if (task && isSafeKey(task._key)) {
+      reservedTaskKeys.add(task._key)
+      try {
+        await client.patch(statusId).set(taskTitlePatch(task._key, run)).commit()
+      } catch (error: unknown) {
+        reservedTaskKeys.delete(task._key)
+        console.error(error)
+      }
+      return
+    }
+    await wait(TASK_LOOKUP_INTERVAL_MS)
+  }
+  /* oxlint-enable no-await-in-loop */
+}
+
+function findUnlabeledTask(tasks: InstructionTask[], run: RecentInstructionRun) {
+  const available = tasks.filter((task) => !reservedTaskKeys.has(task._key))
+  const matches = matchRecentInstructionRuns(available, [run], run.documentId)
+  const taskKey = [...matches.keys()][0]
+  return available.find((task) => task._key === taskKey)
+}
+
+function taskTitlePatch(taskKey: string, run: RecentInstructionRun) {
+  const base = `${typed<keyof AssistTasksStatus>('tasks')}[_key=="${taskKey}"]`
+  const patch: Record<string, string> = {
+    [`${base}.${typed<keyof InstructionTask>('instructionKey')}`]: run.instructionKey,
+  }
+  if (run.title) {
+    patch[`${base}.${typed<keyof InstructionTask>('title')}`] = run.title
+  }
+  return patch
 }
 
 function matchRecentInstructionRuns(
@@ -101,51 +137,6 @@ function matchRecentInstructionRuns(
   return matches
 }
 
-export function useBackfillInstructionTaskMeta(
-  documentId: string,
-  tasks: InstructionTask[] | undefined,
-) {
-  const client = useClient({apiVersion: '2023-01-01'})
-
-  useEffect(() => {
-    if (!documentId || !tasks?.length) return
-
-    const matches = matchRecentInstructionRuns(tasks, getRecentInstructionRuns(), documentId)
-    const patch: Record<string, string> = {}
-    const ids: string[] = []
-
-    for (const [taskKey, run] of matches) {
-      if (!isSafeKey(taskKey)) continue
-      const task = tasks.find((item) => item._key === taskKey)
-      if (!task?.ended) continue
-
-      const id = `${assistTasksStatusId(documentId)}:${taskKey}`
-      if (backfilledTaskIds.has(id)) continue
-      backfilledTaskIds.add(id)
-      ids.push(id)
-
-      const base = `${typed<keyof AssistTasksStatus>('tasks')}[_key=="${taskKey}"]`
-      if (!task.instructionKey) {
-        patch[`${base}.${typed<keyof InstructionTask>('instructionKey')}`] = run.instructionKey
-      }
-      if (!task.title && run.title) {
-        patch[`${base}.${typed<keyof InstructionTask>('title')}`] = run.title
-      }
-    }
-
-    if (Object.keys(patch).length === 0) return
-
-    void client
-      .patch(assistTasksStatusId(documentId))
-      .set(patch)
-      .commit()
-      .catch((error: unknown) => {
-        for (const id of ids) backfilledTaskIds.delete(id)
-        console.error(error)
-      })
-  }, [client, documentId, tasks])
-}
-
 function findRunIndex(runs: RecentInstructionRun[], task: InstructionTask, started: number) {
   const exact = runs.findIndex((run) => run.path === task.path && withinWindow(run, started))
   if (exact !== -1) return exact
@@ -165,13 +156,6 @@ function withinWindow(run: RecentInstructionRun, started: number) {
   )
 }
 
-function remember(run: RecentInstructionRun) {
-  const next = fresh(mergeRuns(getRecentInstructionRuns(), [run]))
-  memory = next
-  persist(next)
-  return run
-}
-
 function fresh(runs: RecentInstructionRun[], now = Date.now()) {
   return runs
     .filter((run) => now - run.requestedAt < maxHistoryVisibilityMs)
@@ -179,51 +163,10 @@ function fresh(runs: RecentInstructionRun[], now = Date.now()) {
     .slice(-MAX_REMEMBERED_RUNS)
 }
 
-function mergeRuns(left: RecentInstructionRun[], right: RecentInstructionRun[]) {
-  const byId = new Map<string, RecentInstructionRun>()
-  for (const run of [...left, ...right]) byId.set(run.id, run)
-  return [...byId.values()]
-}
-
-function readStorage(): RecentInstructionRun[] {
-  try {
-    if (typeof localStorage === 'undefined') return []
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed: unknown = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter(isRecentInstructionRun)
-  } catch {
-    return []
-  }
-}
-
-function persist(runs: RecentInstructionRun[]) {
-  try {
-    if (typeof localStorage === 'undefined') return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(runs))
-  } catch {
-    // Private mode or a full quota. The in-memory list still covers this tab.
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-function isRecentInstructionRun(value: unknown): value is RecentInstructionRun {
-  if (!isRecord(value)) return false
-  return (
-    typeof value['id'] === 'string' &&
-    typeof value['documentId'] === 'string' &&
-    typeof value['path'] === 'string' &&
-    typeof value['instructionKey'] === 'string' &&
-    typeof value['requestedAt'] === 'number' &&
-    (value['title'] === undefined || typeof value['title'] === 'string') &&
-    (value['typePath'] === undefined || typeof value['typePath'] === 'string')
-  )
-}
-
 function isSafeKey(key: string) {
   return /^[A-Za-z0-9_-]+$/.test(key)
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

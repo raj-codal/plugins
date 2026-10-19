@@ -20,6 +20,7 @@ import {FormFieldHeaderText} from 'sanity'
 import {
   discardRecentInstructionRun,
   recordRecentInstructionRun,
+  writeInstructionTaskTitle,
 } from '../assistDocument/recentInstructionRuns'
 import type {CustomInputResult, GetUserInput} from '../fieldActions/useUserInput'
 import {getInstructionTitle} from '../helpers/misc'
@@ -91,7 +92,7 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
 
   const submitInstruction = useCallback(
     (request: RunInstructionRequest, instruction: StudioInstruction) => {
-      const runId = recordRecentInstructionRun({
+      const run = recordRecentInstructionRun({
         documentId: request.documentId,
         path: request.path,
         typePath: request.typePath,
@@ -101,14 +102,15 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
       })
       const pending = runInstructionRequest(request)
       if (!pending) {
-        discardRecentInstructionRun(runId)
+        discardRecentInstructionRun(run.id)
         return
       }
-      void pending.catch(() => {
-        discardRecentInstructionRun(runId)
-      })
+      void pending.then(
+        () => writeInstructionTaskTitle(apiClient, run),
+        () => discardRecentInstructionRun(run.id),
+      )
     },
-    [runInstructionRequest],
+    [apiClient, runInstructionRequest],
   )
 
   const runInstruction = useCallback(
