@@ -4,6 +4,7 @@ import {isAfter} from 'date-fns/isAfter'
 import {useEffect, useRef} from 'react'
 import {type ObjectSchemaType, useCurrentUser} from 'sanity'
 
+import {useRunInstruction} from '../../assistLayout/RunInstructionProvider'
 import {getInstructionTitle} from '../../helpers/misc'
 import type {InstructionTask} from '../../types'
 import {useStudioAssistDocument} from './useStudioAssistDocument'
@@ -16,6 +17,7 @@ export function useInstructionToaster(documentId: string, documentSchemaType: Ob
   const assistDocLoaded = !!assistDocument
   const currentUser = useCurrentUser()
   const toast = useToast()
+  const {getStartedInstruction} = useRunInstruction()
   const tasks = assistDocument?.tasks
   const previousTasks = useRef<InstructionTask[] | undefined | 'initial'>('initial')
 
@@ -38,7 +40,9 @@ export function useInstructionToaster(documentId: string, documentSchemaType: Ob
         .filter((task) => task.ended && isAfter(addSeconds(new Date(task.ended), 30), new Date()))
 
       endedTasks?.forEach((task) => {
-        const title = task.title ?? getInstructionTitle(task.instruction)
+        const title =
+          task.title ??
+          getInstructionTitle(task.instruction ?? getStartedInstruction(documentId, task.path))
         if (task.reason === 'error') {
           toast.push({
             title: `Failed: ${title}`,
@@ -72,5 +76,5 @@ export function useInstructionToaster(documentId: string, documentSchemaType: Ob
       })
     }
     previousTasks.current = tasks
-  }, [tasks, previousTasks, toast, currentUser, assistDocLoaded])
+  }, [tasks, previousTasks, toast, currentUser, assistDocLoaded, getStartedInstruction, documentId])
 }

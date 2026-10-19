@@ -18,9 +18,10 @@ import {
 import {FormFieldHeaderText} from 'sanity'
 
 import type {CustomInputResult, GetUserInput} from '../fieldActions/useUserInput'
+import {assistTasksStatusId} from '../helpers/ids'
 import {getInstructionTitle} from '../helpers/misc'
-import {type UserInputBlock, userInputTypeName} from '../types'
-import {useApiClient, useRunInstructionApi} from '../useApiClient'
+import {type StudioInstruction, type UserInputBlock, userInputTypeName} from '../types'
+import {type RunInstructionRequest, useApiClient, useRunInstructionApi} from '../useApiClient'
 import {useAiAssistanceConfig} from './AiAssistanceConfigContext'
 import type {RunInstructionArgs} from './AssistLayout'
 
@@ -31,12 +32,21 @@ export interface RunInstructionContextValue {
   runInstruction: (req: RunInstructionArgs) => void
   getUserInput: GetUserInput
   instructionLoading: boolean
+  /**
+   * The instruction last started by this user for a document path. Custom instruction tasks
+   * are stored without `instructionKey` and `title`, so this is the only way to name them.
+   */
+  getStartedInstruction: (
+    documentId: string,
+    path: string | undefined,
+  ) => StudioInstruction | undefined
 }
 
 const RunInstructionContext = createContext<RunInstructionContextValue>({
   runInstruction: () => {},
   getUserInput: async () => undefined,
   instructionLoading: false,
+  getStartedInstruction: () => undefined,
 })
 
 export function useRunInstruction() {
@@ -47,12 +57,33 @@ function isUserInputBlock(block: {_type: string}): block is UserInputBlock {
   return block._type === userInputTypeName
 }
 
+function startedInstructionKey(documentId: string, path: string) {
+  return `${assistTasksStatusId(documentId)}:${path}`
+}
+
 export function RunInstructionProvider(props: PropsWithChildren<{}>) {
   const {config} = useAiAssistanceConfig()
   const apiClient = useApiClient(config?.__customApiClient)
   const {runInstruction: runInstructionRequest, loading} = useRunInstructionApi(apiClient)
 
   const id = useId()
+
+  const startedInstructions = useRef(new Map<string, StudioInstruction>())
+  const startInstruction = useCallback(
+    (request: RunInstructionRequest, instruction: StudioInstruction) => {
+      startedInstructions.current.set(
+        startedInstructionKey(request.documentId, request.path),
+        instruction,
+      )
+      void runInstructionRequest(request)
+    },
+    [runInstructionRequest],
+  )
+  const getStartedInstruction = useCallback(
+    (documentId: string, path: string | undefined) =>
+      path ? startedInstructions.current.get(startedInstructionKey(documentId, path)) : undefined,
+    [],
+  )
 
   const [inputs, setInputs] = useState(NO_INPUT)
   const [runRequest, setRunRequest] = useState<
@@ -99,11 +130,7 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
         .filter(isUserInputBlock)
 
       if (!userInputBlocks?.length) {
-        void runInstructionRequest({
-          ...request,
-          instructionKey,
-          userTexts: undefined,
-        })
+        startInstruction({...request, instructionKey, userTexts: undefined}, instruction)
         return
       }
 
@@ -112,7 +139,7 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
         userInputBlocks,
       })
     },
-    [runInstructionRequest, loading],
+    [startInstruction, loading],
   )
 
   const close = useCallback(() => {
@@ -128,14 +155,17 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
     if (runRequest) {
       if ('instruction' in runRequest) {
         const {instruction, userInputBlocks: _, ...request} = runRequest
-        void runInstructionRequest({
-          ...request,
-          instructionKey: instruction._key,
-          userTexts: Object.entries(inputs).map(([key, value]) => ({
-            blockKey: key,
-            userInput: value,
-          })),
-        })
+        startInstruction(
+          {
+            ...request,
+            instructionKey: instruction._key,
+            userTexts: Object.entries(inputs).map(([key, value]) => ({
+              blockKey: key,
+              userInput: value,
+            })),
+          },
+          instruction,
+        )
       } else {
         const userInputs = Object.values(inputs).map((input, i) => {
           const userInputBlock = runRequest.userInputBlocks[i]!
@@ -153,7 +183,7 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
       }
     }
     close()
-  }, [close, runInstructionRequest, runRequest, inputs, resolveUserInput])
+  }, [close, startInstruction, runRequest, inputs, resolveUserInput])
 
   const open = !!runRequest
 
@@ -176,8 +206,8 @@ export function RunInstructionProvider(props: PropsWithChildren<{}>) {
   )
 
   const contextValue: RunInstructionContextValue = useMemo(
-    () => ({runInstruction, getUserInput, instructionLoading: loading}),
-    [getUserInput, loading, runInstruction],
+    () => ({runInstruction, getUserInput, instructionLoading: loading, getStartedInstruction}),
+    [getUserInput, loading, runInstruction, getStartedInstruction],
   )
 
   return (
