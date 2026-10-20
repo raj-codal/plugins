@@ -598,6 +598,22 @@ export type InternationalizedArrayString = Array<
   } & InternationalizedArrayStringValue
 >
 
+export type Issue1956Repro = {
+  _id: string
+  _type: 'issue1956Repro'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title?: string
+  subtitles?: InternationalizedArrayFile
+}
+
+export type InternationalizedArrayFile = Array<
+  {
+    _key: string
+  } & InternationalizedArrayFileValue
+>
+
 export type MovieDocument = {
   _id: string
   _type: 'movieDocument'
@@ -699,6 +715,23 @@ export type InternationalizedArrayText = Array<
 export type InternationalizedArrayDemoTableValue = {
   _type: 'internationalizedArrayDemoTableValue'
   value?: DemoTable
+  language: string
+}
+
+export type SanityFileAssetReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
+}
+
+export type InternationalizedArrayFileValue = {
+  _type: 'internationalizedArrayFileValue'
+  value?: {
+    asset?: SanityFileAssetReference
+    media?: unknown
+    _type: 'file'
+  }
   language: string
 }
 
@@ -1687,13 +1720,6 @@ export type MuxTrack = {
   text_type?: string
 }
 
-export type SanityFileAssetReference = {
-  _ref: string
-  _type: 'reference'
-  _weak?: boolean
-  [internalGroqTypeReferenceTo]?: 'sanity.fileAsset'
-}
-
 export type MediaProduct = {
   _id: string
   _type: 'mediaProduct'
@@ -1878,6 +1904,8 @@ export type AllSanitySchemaTypes =
   | RichDate
   | Issue520Repro
   | InternationalizedArrayString
+  | Issue1956Repro
+  | InternationalizedArrayFile
   | MovieDocument
   | InternationalizedArrayDemoTable
   | DemoTable
@@ -1887,6 +1915,8 @@ export type AllSanitySchemaTypes =
   | InternationalizedPost
   | InternationalizedArrayText
   | InternationalizedArrayDemoTableValue
+  | SanityFileAssetReference
+  | InternationalizedArrayFileValue
   | InternationalizedArrayTextValue
   | InternationalizedArrayStringValue
   | TranslationMetadata
@@ -1977,7 +2007,6 @@ export type AllSanitySchemaTypes =
   | MuxStaticRenditionFile
   | MuxPlaybackId
   | MuxTrack
-  | SanityFileAssetReference
   | MediaProduct
   | MediaFolderReference
   | MediaFolder
